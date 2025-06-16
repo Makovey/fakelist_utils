@@ -11,8 +11,6 @@ import (
 
 const (
 	authRunAddress = "AUTH_RUN_ADDRESS"
-	
-	defaultAuthRunAddress = "localhost:8081" // TODO: remove after
 )
 
 type resolver struct {
@@ -32,7 +30,7 @@ func newEnvAggregator(log logger.Logger) (*envAggregator, error) {
 
 	r := &resolver{log: log}
 
-	authAddress, err := r.resolveVariable(authRunAddress, defaultAuthRunAddress)
+	authAddress, err := r.resolveVariable(authRunAddress)
 	if err != nil {
 		return nil, fmt.Errorf("[%s]: %w", fn, err)
 	}
@@ -42,7 +40,18 @@ func newEnvAggregator(log logger.Logger) (*envAggregator, error) {
 	}, nil
 }
 
-func (r *resolver) resolveVariable(name, defaultValue string) (string, error) {
+func (r *resolver) resolveVariable(name string) (string, error) {
+	fn := "env.resolveVariable"
+
+	value := os.Getenv(name)
+	if value != "" {
+		return value, nil
+	}
+
+	return "", fmt.Errorf("[%s]: required variable - %s is empty", fn, name)
+}
+
+func (r *resolver) resolveVariableWithDefault(name, defaultValue string) (string, error) {
 	fn := "env.resolveVariable"
 
 	value := os.Getenv(name)
